@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Quiz - Smart Quizzer{% endblock %}
+
+{% block content %}
+<div class="quiz-container">
+    <nav class="navbar">
+        <div class="nav-brand">
+            <h2>Smart Quizzer</h2>
+        </div>
+        <div class="nav-menu">
+            <a href="/" class="btn btn-secondary">Back to Dashboard</a>
+        </div>
+    </nav>
+    
+    <div class="quiz-content" id="quizContent">
+        <div class="quiz-header">
+            <h1 id="quizTopic">Loading Quiz...</h1>
+            <div class="quiz-progress">
+                <span id="questionCounter">Question 1 of 10</span>
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <h2 id="questionText" class="question-text">Loading question...</h2>
+            
+            <div id="optionsContainer" class="options-container">
+                <!-- Options will be inserted here -->
+            </div>
+            
+            <div id="feedbackContainer" class="feedback-container" style="display: none;">
+                <!-- Feedback will be shown here -->
+            </div>
+            
+            <div class="quiz-actions">
+                <button id="prevBtn" class="btn btn-secondary" style="display: none;">Previous</button>
+                <button id="nextBtn" class="btn btn-primary" style="display: none;">Next Question</button>
+                <button id="submitBtn" class="btn btn-primary" disabled>Submit Answer</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="results-container" id="resultsContainer" style="display: none;">
+        <div class="results-card">
+            <h1>Quiz Complete!</h1>
+            <div class="score-display">
+                <div class="score-circle">
+                    <span id="finalScore" class="score-number">0</span>
+                    <span class="score-total">/ <span id="totalQuestions">0</span></span>
+                </div>
+                <div class="score-percentage" id="scorePercentage">0%</div>
+            </div>
+            
+            <div class="score-details">
+                <div class="detail-item">
+                    <span class="detail-label">Correct Answers</span>
+                    <span id="correctCount" class="detail-value">0</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Incorrect Answers</span>
+                    <span id="incorrectCount" class="detail-value">0</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Grade</span>
+                    <span id="grade" class="detail-value">-</span>
+                </div>
+            </div>
+            
+            <div class="results-actions">
+                <a href="/" class="btn btn-primary">Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/quiz.js') }}"></script>
+{% endblock %}
