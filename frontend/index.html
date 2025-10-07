@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Smart Quizzer{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <nav class="navbar">
+        <div class="nav-brand">
+            <h2>Smart Quizzer</h2>
+        </div>
+        <div class="nav-menu">
+            <span class="username">Welcome, {{ username }}!</span>
+            <a href="{{ url_for('logout') }}" class="btn btn-secondary">Logout</a>
+        </div>
+    </nav>
+    
+    <div class="dashboard-content">
+        <div class="hero-section">
+            <h1>Start Your Quiz Journey</h1>
+            <p>Choose a topic and test your knowledge with AI-generated questions</p>
+        </div>
+        
+        <div class="quiz-setup-card">
+            <h2>Create New Quiz</h2>
+            
+            <div class="form-group">
+                <label for="topic">Select Topic</label>
+                <select id="topic" class="form-control">
+                    <option value="JavaScript Programming">JavaScript Programming</option>
+                    <option value="Python Programming">Python Programming</option>
+                    <option value="Web Development">Web Development</option>
+                    <option value="Data Structures and Algorithms">Data Structures and Algorithms</option>
+                    <option value="Database Management">Database Management</option>
+                    <option value="Machine Learning">Machine Learning</option>
+                    <option value="Cybersecurity">Cybersecurity</option>
+                    <option value="Cloud Computing">Cloud Computing</option>
+                    <option value="React Framework">React Framework</option>
+                    <option value="Node.js">Node.js</option>
+                    <option value="DevOps">DevOps</option>
+                    <option value="Mobile Development">Mobile Development</option>
+                    <option value="Software Engineering">Software Engineering</option>
+                    <option value="Artificial Intelligence">Artificial Intelligence</option>
+                    <option value="Computer Networks">Computer Networks</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="numQuestions">Number of Questions (5-50)</label>
+                <input type="number" id="numQuestions" class="form-control" min="5" max="50" value="15">
+            </div>
+            
+            <button id="startQuizBtn" class="btn btn-primary btn-large">Generate Quiz</button>
+            
+            <div id="loadingMessage" class="loading-message" style="display: none;">
+                <div class="spinner"></div>
+                <p>Generating your quiz with AI... This may take a moment.</p>
+            </div>
+        </div>
+        
+        <div class="history-section">
+            <h2>Recent Quiz History</h2>
+            <div id="historyContainer" class="history-container">
+                <p class="loading-text">Loading history...</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Load quiz history
+async function loadHistory() {
+    try {
+        const response = await fetch('/api/history');
+        const data = await response.json();
+        
+        const container = document.getElementById('historyContainer');
+        
+        if (data.success && data.history.length > 0) {
+            container.innerHTML = data.history.map(item => `
+                <div class="history-item">
+                    <div class="history-topic">${item.topic}</div>
+                    <div class="history-score">
+                        <span class="score">${item.score}/${item.total}</span>
+                        <span class="percentage">${item.percentage}%</span>
+                    </div>
+                    <div class="history-date">${item.date}</div>
+                </div>
+            `).join('');
+        } else {
+            container.innerHTML = '<p class="no-history">No quiz history yet. Start your first quiz!</p>';
+        }
+    } catch (error) {
+        console.error('[v0] Error loading history:', error);
+    }
+}
+
+// Start quiz
+document.getElementById('startQuizBtn').addEventListener('click', async () => {
+    const topic = document.getElementById('topic').value;
+    const numQuestions = parseInt(document.getElementById('numQuestions').value);
+    
+    if (numQuestions < 5 || numQuestions > 50) {
+        alert('Please enter a number between 5 and 50');
+        return;
+    }
+    
+    const btn = document.getElementById('startQuizBtn');
+    const loadingMsg = document.getElementById('loadingMessage');
+    
+    btn.disabled = true;
+    loadingMsg.style.display = 'block';
+    
+    console.log('[v0] Starting quiz generation...', { topic, numQuestions });
+    
+    try {
+        const response = await fetch('/api/generate-quiz', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ topic, num_questions: numQuestions })
+        });
+        
+        console.log('[v0] Response status:', response.status);
+        
+        const data = await response.json();
+        console.log('[v0] Response data:', data);
+        
+        if (data.success) {
+            console.log('[v0] ✓ Quiz generated successfully');
+            sessionStorage.setItem('currentQuiz', JSON.stringify(data.quiz));
+            sessionStorage.setItem('quizTopic', data.topic);
+            window.location.href = '/quiz';
+        } else {
+            console.error('[v0] ✗ Quiz generation failed:', data.message);
+            alert(`Failed to generate quiz:\n\n${data.message}\n\nCheck the browser console for more details.`);
+            btn.disabled = false;
+            loadingMsg.style.display = 'none';
+        }
+    } catch (error) {
+        console.error('[v0] ✗ Error during quiz generation:', error);
+        alert(`An error occurred: ${error.message}\n\nCheck the browser console and terminal for more details.`);
+        btn.disabled = false;
+        loadingMsg.style.display = 'none';
+    }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadHistory();
+    testGroqAPI();
+});
+
+async function testGroqAPI() {
+    try {
+        const response = await fetch('/api/test-groq');
+        const data = await response.json();
+        
+        if (data.success) {
+            console.log('[v0] ✓ Groq API test successful:', data.message);
+            return true;
+        } else {
+            console.error('[v0] ✗ Groq API test failed:', data.message);
+            if (data.help) {
+                console.error('[v0] Help:', data.help);
+            }
+            return false;
+        }
+    } catch (error) {
+        console.error('[v0] ✗ Error testing Groq API:', error);
+        return false;
+    }
+}
+</script>
+{% endblock %}
